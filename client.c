@@ -9,7 +9,7 @@ void handler(int sig)
 {
     if (sig == SIGUSR1)
     {
-        got_signal = 1;  // Marcar que la señal ha sido recibida
+        got_signal = 1;
     }
 }
 
@@ -19,7 +19,7 @@ void send_bit(pid_t server_pid, char c)
 
     while (i--)
     {
-        if (c & (1 << i)) // Enviar bit `1`
+        if (c & (1 << i))
         {
             if (kill(server_pid, SIGUSR2) == -1)
             {
@@ -27,7 +27,7 @@ void send_bit(pid_t server_pid, char c)
                 exit(EXIT_FAILURE);
             }
         }
-        else // Enviar bit `0`
+        else
         {
             if (kill(server_pid, SIGUSR1) == -1)
             {
@@ -35,12 +35,10 @@ void send_bit(pid_t server_pid, char c)
                 exit(EXIT_FAILURE);
             }
         }
-        usleep(100); // Evitar colisiones de señales
-
-        // Esperar confirmación
+        usleep(100);
         while (!got_signal)
             pause();
-        got_signal = 0; // Resetear para la siguiente señal
+        got_signal = 0;
     }
 }
 
@@ -48,10 +46,10 @@ void send_string(pid_t server_pid, const char *str)
 {
     while (*str)
     {
-        send_bit(server_pid, *str); // Enviar cada carácter
+        send_bit(server_pid, *str);
         str++;
     }
-    send_bit(server_pid, '\0'); // Señal de fin de string
+    send_bit(server_pid, '\0');
 }
 
 int main(int argc, char **argv)
@@ -71,12 +69,11 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    // Configurar manejador de señales
     struct sigaction sa;
     sa.sa_handler = handler;
     sa.sa_flags = 0;
     sigemptyset(&sa.sa_mask);
-    sigaction(SIGUSR1, &sa, NULL); // Para recibir la confirmación
+    sigaction(SIGUSR1, &sa, NULL);
 
     send_string(server_pid, argv[2]);
 
